@@ -1,0 +1,136 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Task Tracker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            /*background-color: #656d4a;*/
+            background-image: url('https://static.vecteezy.com/system/resources/previews/012/707/067/non_2x/cozy-home-seamless-pattern-hand-drawn-print-with-armchair-pillows-cookies-lamp-interior-items-outline-background-vector.jpg');
+            background-repeat: repeat;
+            background-size: auto;
+            background-position: top left;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px;
+        }
+        h1 {
+            color: #fff;
+        }
+        #taskForm {
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            width: 250px;
+            border-radius: 5px;
+            border: 1px solid #fff;
+        }
+        button {
+            padding: 10px 15px;
+            margin-left: 5px;
+            border: 3px solid #fff5eb;
+            border-radius: 5px;
+            background-color: #0000;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #eec170;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+            width: 400px;
+        }
+        li {
+            background-color: #d9ae94;
+             color: #fff;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        li.completed {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+        .btn-group button {
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>ೃ⁀➷ Cozy Task Tracker 🌿</h1>
+
+    <div id="taskForm">
+        <input type="text" id="taskName" placeholder="New task...">
+        <button onclick="addTask()">Add</button>
+    </div>
+
+    <ul id="taskList"></ul>
+
+    <script>
+        const apiUrl = 'http://localhost:3000/tasks';
+
+        async function fetchTasks() {
+            const res = await fetch(apiUrl);
+            const tasks = await res.json();
+            const list = document.getElementById('taskList');
+            list.innerHTML = '';
+
+            tasks.forEach(task => {
+                const li = document.createElement('li');
+                li.textContent = task.name;
+                if(task.status === "completed") li.classList.add('completed');
+
+                const btnGroup = document.createElement('span');
+                btnGroup.className = 'btn-group';
+
+                const completeBtn = document.createElement('button');
+                completeBtn.textContent = '✅';
+                completeBtn.onclick = () => completeTask(task.id);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = '❌';
+                deleteBtn.onclick = () => deleteTask(task.id);
+
+                btnGroup.appendChild(completeBtn);
+                btnGroup.appendChild(deleteBtn);
+                li.appendChild(btnGroup);
+                list.appendChild(li);
+            });
+        }
+
+        async function addTask() {
+            const name = document.getElementById('taskName').value;
+            if(!name) return alert('Please enter a task!');
+            await fetch(apiUrl, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name})
+            });
+            document.getElementById('taskName').value = '';
+            fetchTasks();
+        }
+
+        async function completeTask(id) {
+            await fetch(`${apiUrl}/${id}`, { method: 'PUT' });
+            fetchTasks();
+        }
+
+        async function deleteTask(id) {
+            await fetch(`${apiUrl}/${id}`, { method: 'DELETE' });
+            fetchTasks();
+        }
+
+        fetchTasks();
+    </script>
+</body>
+</html>
